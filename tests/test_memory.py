@@ -569,6 +569,10 @@ class TestMemoryBundle:
     def test_to_prompt_context_with_summary(self):
         """测试带摘要的 prompt 上下文"""
         bundle = MemoryBundle(
+            has_memory=True,
+            global_preferences=[
+                _make_memory_item(content="偏好深色简约风格")
+            ],
             summary="用户偏好深色简约风格穿搭"
         )
 

@@ -24,14 +24,14 @@ class TestHandleNegativeFeedback:
         }
 
         # Mock route_with_higher_confidence to avoid real routing
-        with patch("app.graph.recovery.route_with_higher_confidence", new_callable=AsyncMock) as mock_route:
-            mock_route.return_value = {
-                "active_domain": "search",
-                "route_history": [
-                    {"intent": "outfit", "confidence": 0.8, "failed": True, "failure_reason": "用户负反馈: 你理解错了"}
-                ],
-                "subgraph_outputs": {}
-            }
+        with patch("app.graph.router.route_with_higher_confidence", new_callable=AsyncMock) as mock_route:
+            async def fake_reroute(s):
+                # Simulate the real function marking history and clearing outputs
+                s["route_history"][0]["failed"] = True
+                s["route_history"][0]["failure_reason"] = f"用户负反馈: {s.get('user_feedback', '')}"
+                s["subgraph_outputs"] = {}
+                return s
+            mock_route.side_effect = fake_reroute
 
             result = await handle_negative_feedback(state)
 
@@ -55,12 +55,11 @@ class TestHandleNegativeFeedback:
             }
         }
 
-        with patch("app.graph.recovery.route_with_higher_confidence", new_callable=AsyncMock) as mock_route:
-            mock_route.return_value = {
-                "active_domain": "search",
-                "route_history": state["route_history"],
-                "subgraph_outputs": {}
-            }
+        with patch("app.graph.router.route_with_higher_confidence", new_callable=AsyncMock) as mock_route:
+            async def fake_reroute(s):
+                s["subgraph_outputs"] = {}
+                return s
+            mock_route.side_effect = fake_reroute
 
             result = await handle_negative_feedback(state)
 

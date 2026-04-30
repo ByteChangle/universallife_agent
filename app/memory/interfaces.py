@@ -10,7 +10,8 @@ from datetime import datetime, timedelta
 from .models import (
     MemoryItem, MemoryCandidate, MemoryBundle,
     MemoryRetrievalRequest, MemoryRetrievalResult,
-    MemoryScope, MemoryType, SessionCheckpoint
+    MemoryScope, MemoryType, SessionCheckpoint,
+    MemoryDecision
 )
 
 

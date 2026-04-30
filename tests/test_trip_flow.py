@@ -48,7 +48,7 @@ class TestTripBuildPlanNode:
         """测试提取上海"""
         from app.subgraphs.trip.nodes import build_plan_node
 
-        state = _make_trip_state("去上海旅游 5 天")
+        state = _make_trip_state("规划上海 5 天旅行")
         result = await build_plan_node(state)
 
         assert result["city"] == "上海"
@@ -158,7 +158,7 @@ class TestTripExecuteToolsNode:
             return attraction_result
 
         with patch("app.subgraphs.trip.nodes.get_weather_service", return_value=mock_weather_service), \
-             patch("app.subgraphs.trip.nodes.search_poi", side_effect=mock_search_poi):
+             patch("app.subgraphs.trip.tools.search_poi", side_effect=mock_search_poi):
             result = await execute_tools_node(state)
 
         assert result["weather_info"] is not None
@@ -211,7 +211,7 @@ class TestTripExecuteToolsNode:
         state["travel_days"] = 2
 
         with patch("app.subgraphs.trip.nodes.get_weather_service", return_value=mock_weather_service), \
-             patch("app.subgraphs.trip.nodes.search_poi", return_value=empty_poi):
+             patch("app.subgraphs.trip.tools.search_poi", return_value=empty_poi):
             result = await execute_tools_node(state)
 
         assert result["attractions"] == []

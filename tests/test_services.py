@@ -63,11 +63,12 @@ class TestWeatherService:
     async def test_get_weather_no_api_key(self):
         """测试未配置 API Key 时抛出 ValueError"""
         from app.services.weather_service import WeatherService
+        from app.core.config import settings
 
-        service = WeatherService(api_key="")
-
-        with pytest.raises(ValueError, match="AMAP_API_KEY"):
-            await service.get_weather("上海")
+        with patch.object(settings, "amap_api_key", ""):
+            service = WeatherService(api_key="")
+            with pytest.raises(ValueError, match="AMAP_API_KEY"):
+                await service.get_weather("上海")
 
     @pytest.mark.asyncio
     async def test_get_weather_api_error(self):
@@ -260,11 +261,12 @@ class TestSearchService:
     async def test_search_no_api_key(self):
         """测试未配置 API Key 时抛出 ValueError"""
         from app.services.search_service import SearchService
+        from app.core.config import settings
 
-        service = SearchService(api_key="")
-
-        with pytest.raises(ValueError, match="TAVILY_API_KEY"):
-            await service.search("test query")
+        with patch.object(settings, "tavily_api_key", ""):
+            service = SearchService(api_key="")
+            with pytest.raises(ValueError, match="TAVILY_API_KEY"):
+                await service.search("test query")
 
     def test_format_search_results(self):
         """测试搜索结果格式化"""

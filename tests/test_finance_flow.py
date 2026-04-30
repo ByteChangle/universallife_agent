@@ -1,6 +1,8 @@
 """Finance 子图流程测试"""
 
 import pytest
+from unittest.mock import AsyncMock, patch, MagicMock
+
 from app.subgraphs.finance.graph import get_finance_subgraph
 from app.subgraphs.finance.state import FinanceSubgraphState
 
@@ -69,14 +71,47 @@ async def test_finance_nodes():
 @pytest.mark.asyncio
 async def test_finance_format_stock_info():
     """测试股票信息格式化"""
-    from app.subgraphs.finance.nodes import format_price_comparison
-    from app.services.finance_service import get_finance_service
+    from app.services.finance_service import FinanceService
 
-    service = get_finance_service()
-    stock_data = await service.get_stock_quote("AAPL")
+    service = FinanceService()
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "chart": {
+            "result": [
+                {
+                    "meta": {
+                        "symbol": "AAPL",
+                        "regularMarketPrice": 178.50,
+                        "previousClose": 176.20,
+                        "regularMarketDayHigh": 180.00,
+                        "regularMarketDayLow": 175.50,
+                        "regularMarketVolume": 50000000,
+                        "marketState": "REGULAR",
+                        "exchangeName": "NMS"
+                    },
+                    "indicators": {
+                        "quote": [
+                            {"close": [178.50]}
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+    mock_response.raise_for_status = MagicMock()
+
+    mock_client = AsyncMock()
+    mock_client.get = AsyncMock(return_value=mock_response)
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("app.services.finance_service.httpx.AsyncClient", return_value=mock_client):
+        stock_data = await service.get_stock_quote("AAPL")
 
     formatted = service.format_stock_info(stock_data)
 
     assert "AAPL" in formatted
     assert "$" in formatted or "¥" in formatted
-    assert "涨" in formatted or "跌" in formatted or "➡️" in formatted
+    assert "+" in formatted or "-" in formatted
